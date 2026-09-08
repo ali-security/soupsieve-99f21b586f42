@@ -122,6 +122,12 @@ class TestLang(util.TestCase):
             flags=util.HTML
         )
 
+    def test_language_unclused(self):
+        """Test language with an unclosed value fails for syntax error, not timeout error."""
+
+        self.assert_fast_syntax_error('p:lang("' + ('x' * 300))
+        self.assert_fast_syntax_error("p:lang('" + ('x' * 300))
+
     def test_language_quoted_with_escaped_newline(self):
         """Test language (quoted) with escaped new line."""
 

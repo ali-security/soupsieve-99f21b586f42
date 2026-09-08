@@ -127,6 +127,12 @@ class TestSoupContains(util.TestCase):
             flags=util.HTML
         )
 
+    def test_contains_unclused(self):
+        """Test contains with an unclosed value fails for syntax error, not timeout error."""
+
+        self.assert_fast_syntax_error(':-soup-contains("' + ('x' * 300))
+        self.assert_fast_syntax_error(":-soup-contains('" + ('x' * 300))
+
     def test_contains_escapes(self):
         """Test contains with escape characters."""
 

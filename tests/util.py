@@ -2,6 +2,7 @@
 import unittest
 import bs4
 import textwrap
+import time
 import soupsieve as sv
 import pytest
 
@@ -39,6 +40,11 @@ def skip_no_lxml(func):
 
 class TestCase(unittest.TestCase):
     """Test case."""
+
+    # Generous upper bound (in seconds) for compiling a malformed selector. A pattern that
+    # backtracks catastrophically requires roughly twice the time for each character that is
+    # added, so it will never get close to this, even on a slow, heavily loaded machine.
+    MAX_COMPILE_TIME = 10
 
     def wrap_xhtml(self, html):
         """Wrap HTML content with XHTML header and body."""
@@ -102,6 +108,21 @@ class TestCase(unittest.TestCase):
         print('----Running Assert Test----')
         with self.assertRaises(exception):
             self.compile_pattern(pattern, namespaces=namespace, custom=custom)
+
+    def assert_fast_syntax_error(self, pattern):
+        """Assert a malformed selector fails with a syntax error promptly instead of hanging."""
+
+        print('----Running Fast Failure Test----')
+        print('PATTERN: ', pattern)
+        start = time.perf_counter()
+        with self.assertRaises(sv.SelectorSyntaxError):
+            sv.compile(pattern)
+        elapsed = time.perf_counter() - start
+        self.assertLess(
+            elapsed,
+            self.MAX_COMPILE_TIME,
+            'Compiling a malformed selector of {} characters took {:.3f}s'.format(len(pattern), elapsed)
+        )
 
     def assert_selector(self, markup, selectors, expected_ids, namespaces={}, custom=None, flags=0):
         """Assert selector."""
